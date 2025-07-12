@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum EventType {
+  BIRTHDAY
+  BAPTISM
+  WEDDING
+  COMMUNION
+  ANNIVERSARY
+  GRADUATION
+  ENGAGEMENT
+  BACHELOR
+  BABYSHOWER
+  CORPORATE
+  WORKSHOP
+  GENDERREVEAL
+  XV
+  OTHER
+}
+
+model Invitation {
+  uuid                 String      @id
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  username             String      @unique
+  password             String
+  honoreeName          String
+  eventDate            DateTime
+  eventType            EventType
+  confirmationDeadline DateTime
+  guestList            GuestList[]
+  phoneNumber          String      @db.Char(10)
+  honoreeCode          String      @unique
+  deleted_at           DateTime?
+}
+
+model GuestList {
+  uuid           String     @id
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  name           String
+  invitation_qty Int
+  hasKids        Boolean
+  adultsNo       Int?
+  kidsNo         Int?
+  phoneNumber    String     @db.Char(10)
+  hasConfirmed   Boolean
+  invitation     Invitation @relation(fields: [invitationId], references: [uuid])
+  invitationId   String
+  message        String?    @db.LongText
+  deleted_at     DateTime?
+}
