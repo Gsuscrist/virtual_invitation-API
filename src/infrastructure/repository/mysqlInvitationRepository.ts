@@ -337,8 +337,6 @@ export class MysqlInvitationRepository implements IInvitationRepository {
         }
     }
 
-
-
 }
 
 

@@ -6,6 +6,7 @@ import {InvitationUseCase} from "../application/useCase/invitationUseCase";
 import {InvitationController} from "./controller/invitationController";
 import {GuestListUseCase} from "../application/useCase/guestListUseCase";
 import {GuestListController} from "./controller/guestListController";
+import {WebhookController} from "./controller/webhookController";
 
 export const invitationDatabase = new MysqlInvitationRepository()
 export const encryptService = new BCryptService()
@@ -18,3 +19,5 @@ export const invitationController = new InvitationController(invitationUseCase,j
 
 export const guestListUseCase = new GuestListUseCase(guestListDatabase)
 export const guestListController = new GuestListController(guestListUseCase)
+
+export const webhookController = new WebhookController()
