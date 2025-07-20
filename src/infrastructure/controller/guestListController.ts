@@ -84,6 +84,7 @@ export class GuestListController {
                         hasKids: guestList.hasKids,
                         hasConfirmed: guestList.hasConfirmed,
                         invitationId: guestList.invitationId,
+                        phoneNumber:guestList.phoneNumber,
                     }
                 })
             }
@@ -123,6 +124,7 @@ export class GuestListController {
                                 kidsNo: guest.kidsNo,
                                 adultsNo: guest.adultsNo,
                                 message: guest.message,
+                                phoneNumber:guest.phoneNumber,
                             }
                         })
                     },
@@ -312,6 +314,7 @@ export class GuestListController {
                                 kidsNo: guest.kidsNo,
                                 adultsNo: guest.adultsNo,
                                 message: guest.message,
+                                phoneNumber:guest.phoneNumber,
                             }
                         })
                     },
