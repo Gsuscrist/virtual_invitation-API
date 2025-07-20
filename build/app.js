@@ -14,16 +14,16 @@ const signale = new signale_1.Signale();
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 const PORT = process.env.PORT || 8080;
-app.use('/health', (req, res) => {
+app.use('/api/health', (req, res) => {
     res.status(200).send({
         status: "Success",
         data: [],
         message: "Health ok!"
     });
 });
-app.use('/webhook', webhookRouter_1.webhookRouter);
-app.use('/invitation', invitationRoute_1.invitationRoute);
-app.use('/guests', guestListRoute_1.guestListRoute);
+app.use('/api/webhook', webhookRouter_1.webhookRouter);
+app.use('/api/invitation', invitationRoute_1.invitationRoute);
+app.use('/api/guests', guestListRoute_1.guestListRoute);
 app.listen(PORT, () => {
     signale.success(`Server is running on port ${PORT}`);
 });

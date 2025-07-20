@@ -1,6 +1,7 @@
 import {Request, Response} from "express";
 import {GuestListUseCase} from "../../application/useCase/guestListUseCase";
 import {GuestList} from "../../domain/entity/guestList";
+import signale from "signale";
 
 
 export class GuestListController {
@@ -118,6 +119,10 @@ export class GuestListController {
                                 name: guest.name,
                                 invitationQty: guest.invitationQty,
                                 hasKids: guest.hasKids,
+                                hasConfirmed: guest.hasConfirmed,
+                                kidsNo: guest.kidsNo,
+                                adultsNo: guest.adultsNo,
+                                message: guest.message,
                             }
                         })
                     },
@@ -268,6 +273,60 @@ export class GuestListController {
             )
         }catch (e) {
             console.error(e)
+            return res.status(500).send(
+                {
+                    status: "Error",
+                    error: e,
+                    message: 'Internal Server Error',
+                }
+            )
+        }
+    }
+
+    async getGuestByName(req:Request,res:Response){
+        try{
+            const name = req.params.name
+            const invitationId = req.params.invitation
+
+
+            if(!name || !invitationId ){
+                return res.status(417).send({
+                    status: "Error",
+                    data: {},
+                    message: "Invalid query parameters"
+                })
+            }
+            const guests = await this.repository.getGuestByName(name,invitationId)
+
+            if(guests){
+                return res.status(200).send({
+                    status: "Success",
+                    data: {
+                        guestList: guests.map(guest => {
+                            return {
+                                uuid: guest.uuid,
+                                name: guest.name,
+                                invitationQty: guest.invitationQty,
+                                hasKids: guest.hasKids,
+                                hasConfirmed: guest.hasConfirmed,
+                                kidsNo: guest.kidsNo,
+                                adultsNo: guest.adultsNo,
+                                message: guest.message,
+                            }
+                        })
+                    },
+                    message: "Successfully Getting Guest List"
+                })
+            }
+            return res.status(417).send(
+                {
+                    status: "Error",
+                    data: {},
+                    message: "Unable to obtain guest",
+                }
+            )
+
+        }catch (e) {
             return res.status(500).send(
                 {
                     status: "Error",

@@ -28,4 +28,6 @@ export interface IGuestListRepository {
     createMany(buffer:Buffer,invitationId:string):Promise<Boolean>
 
     sendReminder(id: string):Promise<Boolean>
+
+    getGuestByName(name:string,invitationId:string):Promise<GuestList[]|null>
 }

@@ -87,4 +87,10 @@ export class GuestListUseCase {
             return false
         }
     }
+
+    async getGuestByName(name:string,invitationId:string){
+        try{
+            return await this.repository.getGuestByName(name,invitationId)
+        }catch (e) {}
+    }
 }

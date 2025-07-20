@@ -37,3 +37,7 @@ guestListRoute.post('/confirm-assistance/:id',authenticateMiddleware,sanitizeMid
 guestListRoute.get('/send-reminder/:id',authenticateMiddleware,async (req:Request,res:Response)=>{
     await guestListController.sendReminder(req,res)
 })
+
+guestListRoute.get('/search/:invitation/:name',authenticateMiddleware,async (req:Request,res:Response)=>{
+    await guestListController.getGuestByName(req,res)
+})

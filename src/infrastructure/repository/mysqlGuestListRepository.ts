@@ -5,6 +5,7 @@ import {GuestList} from "../../domain/entity/guestList";
 import ShortUniqueId from "short-unique-id";
 import csvParser from 'csv-parser';
 import { Readable } from 'stream';
+import {contains} from "class-validator";
 
 const prisma = new PrismaClient();
 const signale = new Signale();
@@ -242,6 +243,43 @@ export class MysqlGuestListRepository implements IGuestListRepository{
 
     async sendReminder(id: string): Promise<Boolean> {
         throw new Error("Method not implemented.");
+    }
+    async getGuestByName(name:string,invitationId:string):Promise<GuestList [] | null>{
+        try{
+            const guestList = await prisma.guestList.findMany({
+                where:{
+                    invitationId:invitationId,
+                    name:{
+                        contains:name,
+                    },
+                    AND:{
+                        deleted_at:null
+                    }
+                }
+                }
+            )
+            if (guestList){
+
+                return guestList.map(guest => {
+                    return new GuestList(
+                        guest.uuid,
+                        guest.name,
+                        guest.invitation_qty,
+                        guest.hasKids,
+                        guest.hasConfirmed,
+                        guest.invitationId,
+                        guest.phoneNumber,
+                        guest.adultsNo,
+                        guest.kidsNo,
+                        guest.message,
+                        guest.deleted_at
+                    )
+                })
+            }
+            return null
+        }catch (e) {
+            return null;
+        }
     }
 
 }

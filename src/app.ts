@@ -16,7 +16,7 @@ app.use(express.json());
 const PORT = process.env.PORT || 8080;
 
 
-app.use('/health', (req: Request, res: Response) => {
+app.use('/api/health', (req: Request, res: Response) => {
     res.status(200).send({
         status: "Success",
         data: [],
@@ -24,9 +24,9 @@ app.use('/health', (req: Request, res: Response) => {
     });
 });
 
-app.use('/webhook',webhookRouter)
-app.use('/invitation',invitationRoute)
-app.use('/guests',guestListRoute)
+app.use('/api/webhook',webhookRouter)
+app.use('/api/invitation',invitationRoute)
+app.use('/api/guests',guestListRoute)
 
 app.listen(PORT, () => {
     signale.success(`Server is running on port ${PORT}`);
