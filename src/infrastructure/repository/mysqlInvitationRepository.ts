@@ -45,7 +45,7 @@ export class MysqlInvitationRepository implements IInvitationRepository {
             "to": `52${phoneNumber}`,
             "type": "template",
             "template": {
-                "name": {invitationId},
+                "name": invitationId,
                 "language": {
                     "code": "es_MX"
                 },
