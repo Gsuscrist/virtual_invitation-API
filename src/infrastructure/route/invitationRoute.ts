@@ -30,3 +30,7 @@ invitationRoute.get('/send-invitations/:code',authenticateMiddleware,async (req:
     await invitationController.sendInvitations(req,res)
 })
 
+invitationRoute.get('/send-reminder/:code',authenticateMiddleware,async (req:Request,res:Response)=>{
+    await invitationController.sendReminder(req,res)
+})
+

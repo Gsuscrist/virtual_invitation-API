@@ -241,9 +241,6 @@ export class MysqlGuestListRepository implements IGuestListRepository{
         }
     }
 
-    async sendReminder(id: string): Promise<Boolean> {
-        throw new Error("Method not implemented.");
-    }
     async getGuestByName(name:string,invitationId:string):Promise<GuestList [] | null>{
         try{
             const guestList = await prisma.guestList.findMany({

@@ -256,35 +256,6 @@ export class GuestListController {
         }
     }
 
-    async sendReminder(req:Request, res:Response){
-        try{
-            let id = req.params.id
-            const guest = await this.repository.sendReminder(id)
-            if (guest){
-                return res.status(200).send({
-                    status: "Success",
-                    data: {},
-                    message: "Successfully Sent Reminder"
-                })
-            }
-            return res.status(417).send(
-                {error: "Error",
-                data: {},
-                message: "Unable to send reminder, try again later",
-                }
-            )
-        }catch (e) {
-            console.error(e)
-            return res.status(500).send(
-                {
-                    status: "Error",
-                    error: e,
-                    message: 'Internal Server Error',
-                }
-            )
-        }
-    }
-
     async getGuestByName(req:Request,res:Response){
         try{
             const name = req.params.name

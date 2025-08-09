@@ -200,4 +200,31 @@ export class InvitationController {
             })
         }
     }
+
+    async sendReminder(req:Request,res:Response){
+        try{
+            let honoreeCode = req.params.code
+            const status = await  this.repository.sendReminder(honoreeCode)
+            if (status){
+                return res.status(200).send({
+                    status: "Success",
+                    data: {},
+                    message: "Successfully Sending Invitations"
+                })
+            }
+            return res.status(417).send({
+                status: "Error",
+                data: {},
+                message: "Unable to obtain invitation, try again later",
+            })
+
+        }catch (e) {
+            console.error(e)
+            return res.status(500).send({
+                status: "Error",
+                error: e,
+                message: 'Internal Server Error',
+            })
+        }
+    }
 }
