@@ -83,6 +83,8 @@ export class GuestListController {
                         invitationQty: guestList.invitationQty,
                         hasKids: guestList.hasKids,
                         hasConfirmed: guestList.hasConfirmed,
+                        adultsNo: guestList.adultsNo,
+                        kidsNo: guestList.kidsNo,
                         invitationId: guestList.invitationId,
                         phoneNumber:guestList.phoneNumber,
                     }
