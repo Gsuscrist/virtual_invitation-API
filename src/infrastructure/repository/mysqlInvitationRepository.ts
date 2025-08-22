@@ -39,41 +39,58 @@ export class MysqlInvitationRepository implements IInvitationRepository {
         let contactNumber = guest.contact
         let {description, urlPrefix} = this.getEventMetadata(guest.event as EventType)
         let urlPostfix = `/${urlPrefix}/${guest.honoreeCode}/${guest.id}`
-        let data = JSON.stringify({
-            "messaging_product": "whatsapp",
-            "recipient_type": "individual",
-            "to": `52${phoneNumber}`,
-            "type": "template",
-            "template": {
-                "name": invitationId,
-                "language": {
-                    "code": "es_MX"
-                },
-                "components": [
-                    {
-                        "type": "body",
-                        "parameters": [
-                            {
-                                "type": "text",
-                                "text": `${description}`
-                            },
-                            {
-                                "type": "text",
-                                "text": `${honoree}`
-                            },
-                            {
-                                "type": "text",
-                                "text": `https://invitaciones-virtuales.com.mx${urlPostfix}`
-                            },
-                            {
-                                "type": "text",
-                                "text": `${contactNumber}`
-                            }
-                        ]
+        let data = JSON.stringify({})
+        if (invitationId ==="pre_invitacion_virtual"){
+            data = JSON.stringify({
+                "messaging_product": "whatsapp",
+                "recipient_type": "individual",
+                "to": `52${phoneNumber}`,
+                "type": "template",
+                "template": {
+                    "name": invitationId,
+                    "language": {
+                        "code": "es_MX"
                     }
-                ]
-            }
-        });
+                }
+            });
+        }else{
+            data = JSON.stringify({
+                "messaging_product": "whatsapp",
+                "recipient_type": "individual",
+                "to": `52${phoneNumber}`,
+                "type": "template",
+                "template": {
+                    "name": invitationId,
+                    "language": {
+                        "code": "es_MX"
+                    },
+                    "components": [
+                        {
+                            "type": "body",
+                            "parameters": [
+                                {
+                                    "type": "text",
+                                    "text": `${description}`
+                                },
+                                {
+                                    "type": "text",
+                                    "text": `${honoree}`
+                                },
+                                {
+                                    "type": "text",
+                                    "text": `https://invitaciones-virtuales.com.mx${urlPostfix}`
+                                },
+                                {
+                                    "type": "text",
+                                    "text": `${contactNumber}`
+                                }
+                            ]
+                        }
+                    ]
+                }
+            });
+        }
+
         return {
             method: 'post',
             maxBodyLength: Infinity,
@@ -337,6 +354,58 @@ export class MysqlInvitationRepository implements IInvitationRepository {
         }
     }
 
+    async sendPreInvitations(honoreeCode:string): Promise<boolean> {
+        try {
+            const invitation = await this.getInvitationBy(honoreeCode);
+            if (!invitation) {
+                signale.warn(`Invitation with honoreeCode ${honoreeCode} not found`);
+                return false;
+            }
+            const guests = invitation.guestList;
+            if (!guests || guests.length === 0) {
+                signale.warn(`No guests found for invitation ${honoreeCode}`);
+                return false;
+            }
+
+            let allSent = true;
+
+            for (const guest of guests) {
+                const guest_data = {
+                    id: guest.uuid,
+                    phone: guest.phoneNumber,
+                    event: invitation.eventType,
+                    honoree: invitation.honoreeName,
+                    contact: invitation.phoneNumber,
+                    honoreeCode: invitation.honoreeCode,
+                };
+
+                const config = await this.getGuestConfigData(guest_data,"pre_invitacion_virtual");
+
+                try {
+                    const response = await axios.request(config);
+                    if (response.status !== 200) {
+                        signale.error(
+                            `Failed to send to ${guest.phoneNumber}: status ${response.status}`
+                        );
+                        allSent = false;
+                    } else {
+                        signale.success(`Invitation sent to ${guest.phoneNumber}`);
+                    }
+                } catch (requestError) {
+                    signale.error(
+                        `Error sending to ${guest.phoneNumber}: ${requestError}`
+                    );
+                    allSent = false;
+                }
+            }
+
+            return allSent;
+        } catch (e) {
+            console.error(`Unexpected error in sendInvitations:`, e);
+            return false;
+        }
+    }
+
     async sendReminder(honoreeCode:string): Promise<boolean> {
         try {
             const invitation = await this.getInvitationBy(honoreeCode);
@@ -392,6 +461,8 @@ export class MysqlInvitationRepository implements IInvitationRepository {
             return false;
         }
     }
+
+
 
 }
 

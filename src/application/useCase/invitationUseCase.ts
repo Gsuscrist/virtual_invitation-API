@@ -70,6 +70,14 @@ export class InvitationUseCase {
         }
     }
 
+    async sendPreInvitations(honoreeCode:string){
+        try{
+            return await this.repository.sendPreInvitations(honoreeCode)
+        }catch (e) {
+            console.error(e)
+        }
+    }
+
     async sendReminder(honoreeCode:string){
         try {
             return await this.repository.sendReminder(honoreeCode)
