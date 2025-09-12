@@ -5,6 +5,7 @@ import {GuestList} from "../../domain/entity/guestList";
 import ShortUniqueId from "short-unique-id";
 import csvParser from 'csv-parser';
 import { Readable } from 'stream';
+import {contains} from "class-validator";
 
 const prisma = new PrismaClient();
 const signale = new Signale();
@@ -14,10 +15,16 @@ interface GuestCSVRow {
     invitationQty: string;
     hasKids: string;
     phoneNumber: string;
+    adultsNo?: string;
+    kidsNo?: string;
 }
 
 
 export class MysqlGuestListRepository implements IGuestListRepository{
+    private cleanPhoneNumber(value: string): string {
+        return value ? value.replace(/\D/g, '').slice(0, 10) : '';
+    }
+
     private parseCSV(fileBuffer: Buffer): Promise<GuestCSVRow[]> {
         return new Promise((resolve, reject) => {
             const results: GuestCSVRow[] = [];
@@ -26,12 +33,43 @@ export class MysqlGuestListRepository implements IGuestListRepository{
             stream
                 .pipe(csvParser())
                 .on('data', (row: any) => {
-                    const mappedRow: GuestCSVRow = {
-                        name: row['Nombre Invitacion']?.trim() || '',
-                        invitationQty: row['Pases']?.trim() || '1',
-                        hasKids: this.parseBoolean(row['Niños']),
-                        phoneNumber: row['Telefono']?.trim() || '',
-                    };
+                    let mappedRow: GuestCSVRow;
+
+                    // Caso 1: CSV con "Pases" y "Niños"
+                    if ('Pases' in row && 'Niños' in row) {
+
+                        mappedRow = {
+                            name: row['Nombre Invitacion']?.trim() || '',
+                            invitationQty: row['Pases']?.trim() || '1',
+                            hasKids: this.parseBoolean(row['Niños']),
+                            phoneNumber: this.cleanPhoneNumber(row['Telefono']?.trim()),
+                        };
+                    }
+                    // Caso 2: CSV con "Total de Pases", "Adultos", "Menores"
+                    else if ('Total de Pases' in row && ('Adultos' in row || 'Menores' in row)) {
+                        const total = row['Total de Pases']?.trim() || '1';
+                        const adults = parseInt(row['Adultos']?.trim() || '0', 10);
+                        const kids = parseInt(row['Menores']?.trim() || '0', 10);
+
+                        mappedRow = {
+                            name: row['Nombre Invitacion']?.trim() || '',
+                            invitationQty: total,
+                            hasKids: kids > 0 ? 'true' : 'false',
+                            phoneNumber: this.cleanPhoneNumber(row['Telefono']?.trim()),
+                            adultsNo: adults.toString(),
+                            kidsNo: kids.toString(),
+                        };
+                    }
+                    // Fallback
+                    else {
+                        mappedRow = {
+                            name: row['Nombre Invitacion']?.trim() || '',
+                            invitationQty: '1',
+                            hasKids: 'false',
+                            phoneNumber: this.cleanPhoneNumber(row['Telefono']?.trim()),
+                        };
+                    }
+
                     results.push(mappedRow);
                 })
                 .on('end', () => resolve(results))
@@ -52,10 +90,29 @@ export class MysqlGuestListRepository implements IGuestListRepository{
             name: row.name.trim(),
             invitation_qty: parseInt(row.invitationQty, 10),
             hasKids: row.hasKids.trim().toLowerCase() === 'true',
+            adultsNo: row.adultsNo ? parseInt(row.adultsNo, 10) : null,
+            kidsNo: row.kidsNo ? parseInt(row.kidsNo, 10) : null,
             phoneNumber: row.phoneNumber.trim(),
             hasConfirmed: false,
             invitationId,
         }));
+    }
+
+    async createMany(buffer: Buffer, invitationId: string) {
+        try {
+            const rows = await this.parseCSV(buffer);
+            const data = this.mapCSVToGuestData(rows, invitationId);
+
+            if (data.length > 0) {
+                const guestList = await prisma.guestList.createMany({ data });
+                signale.success('connection successful')
+                return !!guestList;
+            }
+            return false;
+        } catch (e) {
+            console.error(e);
+            return false;
+        }
     }
 
     async confirmAssistance(id: string, adultsNo: number, kidsNo: number,message:string): Promise<Boolean> {
@@ -224,24 +281,43 @@ export class MysqlGuestListRepository implements IGuestListRepository{
         }
     }
 
-    async createMany(buffer:Buffer,invitationId:string){
+
+    async getGuestByName(name:string,invitationId:string):Promise<GuestList [] | null>{
         try{
-            const rows = await this.parseCSV(buffer)
-            const data = this.mapCSVToGuestData(rows,invitationId)
-            if (data.length > 0) {
-                const guestList = await prisma.guestList.createMany({ data });
-                return !!guestList;
+            const guestList = await prisma.guestList.findMany({
+                where:{
+                    invitationId:invitationId,
+                    name:{
+                        contains:name,
+                    },
+                    AND:{
+                        deleted_at:null
+                    }
+                }
+                }
+            )
+            if (guestList){
 
+                return guestList.map(guest => {
+                    return new GuestList(
+                        guest.uuid,
+                        guest.name,
+                        guest.invitation_qty,
+                        guest.hasKids,
+                        guest.hasConfirmed,
+                        guest.invitationId,
+                        guest.phoneNumber,
+                        guest.adultsNo,
+                        guest.kidsNo,
+                        guest.message,
+                        guest.deleted_at
+                    )
+                })
             }
-            return false
+            return null
         }catch (e) {
-            console.error(e)
-            return false
+            return null;
         }
-    }
-
-    async sendReminder(id: string): Promise<Boolean> {
-        throw new Error("Method not implemented.");
     }
 
 }

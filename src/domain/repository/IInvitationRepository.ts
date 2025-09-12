@@ -22,6 +22,10 @@ export interface IInvitationRepository {
 
     sendInvitations(honoreeCode:string):Promise<Boolean>
 
+    sendReminder(honoreeCode:string):Promise<Boolean>
+
+    sendPreInvitations(honoreeCode:string): Promise<boolean>
+
 
 
 }

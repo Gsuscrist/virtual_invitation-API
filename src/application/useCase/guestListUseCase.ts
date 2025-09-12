@@ -70,14 +70,7 @@ export class GuestListUseCase {
         }
     }
 
-    async sendReminder(id:string){
-        try{
-            return await this.repository.sendReminder(id)
-        }catch (e) {
-            console.error(e)
-            return false
-        }
-    }
+
 
     async createMany(buffer:Buffer,invitationId:string){
         try{
@@ -86,5 +79,11 @@ export class GuestListUseCase {
             console.error(e)
             return false
         }
+    }
+
+    async getGuestByName(name:string,invitationId:string){
+        try{
+            return await this.repository.getGuestByName(name,invitationId)
+        }catch (e) {}
     }
 }

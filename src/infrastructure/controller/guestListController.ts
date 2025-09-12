@@ -1,6 +1,7 @@
 import {Request, Response} from "express";
 import {GuestListUseCase} from "../../application/useCase/guestListUseCase";
 import {GuestList} from "../../domain/entity/guestList";
+import signale from "signale";
 
 
 export class GuestListController {
@@ -82,7 +83,10 @@ export class GuestListController {
                         invitationQty: guestList.invitationQty,
                         hasKids: guestList.hasKids,
                         hasConfirmed: guestList.hasConfirmed,
+                        adultsNo: guestList.adultsNo,
+                        kidsNo: guestList.kidsNo,
                         invitationId: guestList.invitationId,
+                        phoneNumber:guestList.phoneNumber,
                     }
                 })
             }
@@ -118,6 +122,11 @@ export class GuestListController {
                                 name: guest.name,
                                 invitationQty: guest.invitationQty,
                                 hasKids: guest.hasKids,
+                                hasConfirmed: guest.hasConfirmed,
+                                kidsNo: guest.kidsNo,
+                                adultsNo: guest.adultsNo,
+                                message: guest.message,
+                                phoneNumber:guest.phoneNumber,
                             }
                         })
                     },
@@ -249,25 +258,51 @@ export class GuestListController {
         }
     }
 
-    async sendReminder(req:Request, res:Response){
+    async getGuestByName(req:Request,res:Response){
         try{
-            let id = req.params.id
-            const guest = await this.repository.sendReminder(id)
-            if (guest){
+            const name = req.params.name
+            const invitationId = req.params.invitation
+
+
+            if(!name || !invitationId ){
+                return res.status(417).send({
+                    status: "Error",
+                    data: {},
+                    message: "Invalid query parameters"
+                })
+            }
+            const guests = await this.repository.getGuestByName(name,invitationId)
+
+            if(guests){
                 return res.status(200).send({
                     status: "Success",
-                    data: {},
-                    message: "Successfully Sent Reminder"
+                    data: {
+                        guestList: guests.map(guest => {
+                            return {
+                                uuid: guest.uuid,
+                                name: guest.name,
+                                invitationQty: guest.invitationQty,
+                                hasKids: guest.hasKids,
+                                hasConfirmed: guest.hasConfirmed,
+                                kidsNo: guest.kidsNo,
+                                adultsNo: guest.adultsNo,
+                                message: guest.message,
+                                phoneNumber:guest.phoneNumber,
+                            }
+                        })
+                    },
+                    message: "Successfully Getting Guest List"
                 })
             }
             return res.status(417).send(
-                {error: "Error",
-                data: {},
-                message: "Unable to send reminder, try again later",
+                {
+                    status: "Error",
+                    data: {},
+                    message: "Unable to obtain guest",
                 }
             )
+
         }catch (e) {
-            console.error(e)
             return res.status(500).send(
                 {
                     status: "Error",

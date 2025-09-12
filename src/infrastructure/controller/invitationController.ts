@@ -174,10 +174,66 @@ export class InvitationController {
         }
     }
 
+
+
     async sendInvitations(req:Request,res:Response){
         try{
             let honoreeCode = req.params.code
             const status = await  this.repository.sendInvitations(honoreeCode)
+            if (status){
+                return res.status(200).send({
+                    status: "Success",
+                    data: {},
+                    message: "Successfully Sending Invitations"
+                })
+            }
+            return res.status(417).send({
+                status: "Error",
+                data: {},
+                message: "Unable to obtain invitation, try again later",
+            })
+
+        }catch (e) {
+            console.error(e)
+            return res.status(500).send({
+                status: "Error",
+                error: e,
+                message: 'Internal Server Error',
+            })
+        }
+    }
+
+    async sendPreInvitations(req:Request,res:Response){
+        try{
+            let honoreeCode = req.params.code
+            const status = await  this.repository.sendPreInvitations(honoreeCode)
+            if (status){
+                return res.status(200).send({
+                    status: "Success",
+                    data: {},
+                    message: "Successfully Sending Invitations"
+                })
+            }
+            return res.status(417).send({
+                status: "Error",
+                data: {},
+                message: "Unable to obtain invitation, try again later",
+            })
+
+        }catch (e) {
+            console.error(e)
+            return res.status(500).send({
+                status: "Error",
+                error: e,
+                message: 'Internal Server Error',
+            })
+        }
+    }
+
+    async sendReminder(req:Request,res:Response){
+        try{
+            let honoreeCode = req.params.code
+            const status = await  this.repository.sendReminder(honoreeCode)
             if (status){
                 return res.status(200).send({
                     status: "Success",
